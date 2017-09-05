@@ -119,6 +119,7 @@ Finally we have the placeholder variable for the true class of each image in the
 y_true_cls = tf.placeholder(tf.int64, [None])
 
 # Variables to be optimized
+# Things that we ask TensorFlow to compute for us during training
 ###############################################################################
 """
 We also need the weights and biases for our model.
@@ -269,8 +270,67 @@ def plot_example_errors():
                 cls_true=cls_true[0:9],
                 cls_pred=cls_pred[0:9])
     
+# Helper-function to plot the model weights
+def plot_weights():
+    # Get the values for the weights from the TensorFlow variable.
+    w = session.run(weights)
+    
+    # Get the lowest and highest values for the weights.
+    # This is used to correct the colour intensity across
+    # the images so they can be compared with each other.
+    w_min = np.min(w)
+    w_max = np.max(w)
+
+    # Create figure with 3x4 sub-plots,
+    # where the last 2 sub-plots are unused.
+    fig, axes = plt.subplots(3, 4)
+    fig.subplots_adjust(hspace=0.3, wspace=0.3)
+
+    for i, ax in enumerate(axes.flat):
+        # Only use the weights for the first 10 sub-plots.
+        if i<10:
+            # Get the weights for the i'th digit and reshape it.
+            # Note that w.shape == (img_size_flat, 10)
+            image = w[:, i].reshape(img_shape)
+
+            # Set the label for the sub-plot.
+            ax.set_xlabel("Weights: {0}".format(i))
+
+            # Plot the image.
+            ax.imshow(image, vmin=w_min, vmax=w_max, cmap='seismic')
+
+        # Remove ticks from each sub-plot.
+        ax.set_xticks([])
+        ax.set_yticks([])
+
+    
 # Performance before any optimization
 print_accuracy()
 plot_example_errors()
 
 # Performance after 1 optimization iteration
+optimize(num_iterations=1)
+print_accuracy()
+plot_example_errors()
+plot_weights()
+
+# Performance after 10 optimization iterations
+# We have already performed 1 iteration.
+optimize(num_iterations=9)
+print_accuracy()
+plot_example_errors()
+plot_weights()
+
+# Performance after 1000 optimization iterations
+# We have already performed 10 iterations.
+optimize(num_iterations=990)
+print_accuracy()
+plot_example_errors()
+plot_weights()
+
+print_confusion_matrix()
+
+
+# This has been commented out in case you want to modify and experiment
+# with the Notebook without having to restart it.
+session.close()
